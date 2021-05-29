@@ -256,7 +256,7 @@ function formatThousands(number: number, fractionDigits: number = 0): string {
   return formatted;
 }
 
-function generateTable(orders: IOrder[]) {
+function generateTable(orders: IOrder[], answers: IAskResponse) {
   const table = new Table({
     chars: {
       top: "",
@@ -276,9 +276,16 @@ function generateTable(orders: IOrder[]) {
       middle: " ",
     },
     style: { "padding-left": 0, "padding-right": 0 },
-    colWidths: [10, 8, 15, 8, 25, 95],
+    colWidths: [10, 12, 18, 8, 25, 95],
     colAligns: ["left", "right", "right", "right", "left", "left"],
-    head: ["Success", "Price", "Available", "Order", "Name", "Link"],
+    head: [
+      "Success",
+      `Price (${answers.fiat})`,
+      `Available (${answers.crypto})`,
+      "Order",
+      "Name",
+      "Link",
+    ],
   });
 
   const ascendPriceSorted = sortOrderWithPrice(orders);
@@ -324,7 +331,7 @@ function setIntervalImmediately(func: Function, interval: number) {
     const p2pResponse = await requestP2P(requestOptions);
     const orders = p2pResponse.data;
     const sorted = sortOrderWithPriceAndFinishRate(orders);
-    const table = generateTable(sorted);
+    const table = generateTable(sorted, answers);
 
     logUpdate(`DATE: ${chalk.bold.underline(
       new Date().toLocaleString()

@@ -87,12 +87,14 @@ export interface IOrder {
   advertiser: IAdvertiser;
 }
 
+export type IClassify = "mass" | "profession";
+
 export interface IAdvertising {
   advNo: string;
-  classify: string;
+  classify: IClassify;
   tradeType: TradeType;
-  asset: string;
-  fiatUnit: string;
+  asset: Crypto;
+  fiatUnit: Fiat;
   price: string;
   initAmount: string;
   surplusAmount: string;
@@ -100,27 +102,27 @@ export interface IAdvertising {
   maxSingleTransAmount: string;
   minSingleTransAmount: string;
   remarks?: string;
-  autoReplyMsg: string;
   payTimeLimit?: string;
-  tradeMethods?: ITradeMethods;
-  createTime?: string;
-  advUpdateTime?: string;
-  fiatVo?: string;
-  assetVo?: string;
-  advVisibleRet?: string;
-  assetLogo?: string;
-  assetScale: number;
-  fiatScale: number;
-  priceScale: number;
+  tradeMethods?: ITradeMethods[];
   fiatSymbol: string;
-  isTradable: boolean;
   dynamicMaxSingleTransAmount: string;
   minSingleTransQuantity: string;
   maxSingleTransQuantity: string;
   dynamicMaxSingleTransQuantity: string;
 }
 
-export type PayType = "BANK";
+export type PayType =
+  | "BANK"
+  | "TrueMoney"
+  | "ShopeePay"
+  | "CashDeposit"
+  | "LINEPay"
+  | "Paypal"
+  | "WesternUnion"
+  | "FPS"
+  | "NGNfiatbalance"
+  | "Tinkoff"
+  | "jkopay";
 
 export interface ITradeMethods {
   payId?: string;
@@ -129,25 +131,17 @@ export interface ITradeMethods {
   payBank?: PayType;
   paySubBank?: string;
   identifier: string;
-  iconUrlColor: string;
-  tradeMethodName: string;
-  tradeMethodShortName: string;
-  tradeMethodBgColor: string;
 }
+
+export type UserType = "user" | "merchant";
 
 export interface IAdvertiser {
   userNo: string;
   realName?: string;
   nickName: string;
-  margin?: number;
-  marginUnit?: number;
   orderCount?: number;
   monthOrderCount: number;
   monthFinishRate: number;
-  advConfirmTime: number;
   email?: string;
-  registrationTime?: string;
-  mobile?: string;
-  userType: string;
-  tagIconUrls?: string[];
+  userType?: UserType;
 }
