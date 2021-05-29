@@ -248,7 +248,7 @@ const RateMapper = {
   2: "medium",
 };
 
-function formatThousands(number: number, fractionDigits: number = 0): string {
+function thousandSeparator(number: number, fractionDigits: number = 0): string {
   const defaultLocale = undefined;
   const formatted = number.toLocaleString(defaultLocale, {
     minimumFractionDigits: fractionDigits,
@@ -280,8 +280,8 @@ function generateTable(orders: IOrder[], answers: IAskResponse) {
     colAligns: ["left", "right", "right", "right", "left", "left"],
     head: [
       "Success",
-      `Price (${answers.fiat})`,
-      `Available (${answers.crypto})`,
+      `Price ${chalk.bold(`(${answers.fiat})`)}`,
+      `Available ${chalk.bold(`(${answers.crypto})`)}`,
       "Order",
       "Name",
       "Link",
@@ -298,15 +298,20 @@ function generateTable(orders: IOrder[], answers: IAskResponse) {
     const advertiserNo = order.advertiser.userNo;
     const available = order.adv.surplusAmount;
     const monthFinishRatePercent = `${monthFinishRate.toFixed(2)}%`;
+    const userType = order.advertiser.userType;
+    const nickNameWithUserType =
+    userType === "merchant"
+        ? `${nickName} ${chalk.bgGreen.black(` ${userType} `)}`
+        : nickName;
 
     table.push([
       monthFinishRate === 100
         ? chalk.hex(Colors.best)(monthFinishRatePercent)
         : monthFinishRatePercent,
       chalk.hex(ascendPriceColorMapped[price].color)(price),
-      formatThousands(parseFloat(available), 2),
-      formatThousands(monthOrderCount),
-      nickName,
+      thousandSeparator(parseFloat(available), 2),
+      thousandSeparator(monthOrderCount),
+      nickNameWithUserType,
       `${P2P_ENDPOINT}/en/advertiserDetail?advertiserNo=${advertiserNo}`,
     ]);
   }

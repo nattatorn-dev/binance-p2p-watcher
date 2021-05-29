@@ -87,11 +87,11 @@ export interface IOrder {
   advertiser: IAdvertiser;
 }
 
-export type IClassify = "mass" | "profession";
+export type Classify = "mass" | "profession";
 
 export interface IAdvertising {
   advNo: string;
-  classify: IClassify;
+  classify: Classify;
   tradeType: TradeType;
   asset: Crypto;
   fiatUnit: Fiat;
