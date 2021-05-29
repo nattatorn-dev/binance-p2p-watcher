@@ -280,8 +280,8 @@ function generateTable(orders: IOrder[], answers: IAskResponse) {
     colAligns: ["left", "right", "right", "right", "left", "left"],
     head: [
       "Success",
-      `Price ${chalk.bold(`(${answers.fiat})`)}`,
-      `Available ${chalk.bold(`(${answers.crypto})`)}`,
+      `Price ${answers.fiat}`,
+      `Available ${answers.crypto}`,
       "Order",
       "Name",
       "Link",
@@ -301,7 +301,7 @@ function generateTable(orders: IOrder[], answers: IAskResponse) {
     const userType = order.advertiser.userType;
     const nickNameWithUserType =
     userType === "merchant"
-        ? `${nickName} ${chalk.bgGreen.black(` ${userType} `)}`
+        ? `${nickName} ${chalk.hex(Colors.best)(` ${userType} `)}`
         : nickName;
 
     table.push([
