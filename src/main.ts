@@ -196,7 +196,7 @@ function prepareP2POption(answers: IAskResponse): IPSPRequestOption {
   return options;
 }
 
-function sortOrderWithPriceAndFinishRate(orders: IOrder[]): IOrder[] {
+export function sortOrderWithPriceAndFinishRate(orders: IOrder[]): IOrder[] {
   const priceAscend = R.ascend(R.path(["adv", "price"]));
   const finishRateDescend = R.descend(
     R.path(["advertiser", "monthFinishRate"])
@@ -211,7 +211,7 @@ function sortOrderWithPriceAndFinishRate(orders: IOrder[]): IOrder[] {
   return sorted;
 }
 
-function sortOrderWithPrice(orders: IOrder[]): IOrder[] {
+export function sortOrderWithPrice(orders: IOrder[]): IOrder[] {
   const priceAscend = R.ascend(R.path(["adv", "price"]));
   const sortWithPrice = R.sortWith([priceAscend]);
   const sorted = sortWithPrice(orders);
@@ -220,19 +220,19 @@ function sortOrderWithPrice(orders: IOrder[]): IOrder[] {
 }
 
 function mapColor(orders: IOrder[]): Record<string, { color: string }> {
-  const minPriceColorMapped: Record<string, { color: string }> = {};
+  const ascendPriceColorMapped: Record<string, { color: string }> = {};
 
   let colorCounter = 0;
   for (let index = 0; index < orders.length; index++) {
     const order: IOrder = orders[index];
-    if (!minPriceColorMapped[order.adv.price]) {
-      minPriceColorMapped[order.adv.price] = {
+    if (!ascendPriceColorMapped[order.adv.price]) {
+      ascendPriceColorMapped[order.adv.price] = {
         color: Colors[RateMapper[colorCounter]] || Colors.normal,
       };
       colorCounter++;
     }
   }
-  return minPriceColorMapped;
+  return ascendPriceColorMapped;
 }
 
 enum Colors {
