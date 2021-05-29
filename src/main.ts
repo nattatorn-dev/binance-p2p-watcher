@@ -196,18 +196,26 @@ function prepareP2POption(answers: IAskResponse): IPSPRequestOption {
   return options;
 }
 
-function sortOrder(orders: IOrder[]): IOrder[] {
-  const sortWith = R.sortWith([
-    R.ascend(R.path(["adv", "price"])),
-    R.descend(R.path(["advertiser", "monthFinishRate"])),
-  ]);
+function sortOrderWithPriceAndFinishRate(orders: IOrder[]): IOrder[] {
+  const priceAscend = R.ascend(R.path(["adv", "price"]));
+  const finishRateDescend = R.descend(
+    R.path(["advertiser", "monthFinishRate"])
+  );
 
-  return sortWith(orders);
+  const sortWithPriceAndFinishRate = R.sortWith([
+    priceAscend,
+    finishRateDescend,
+  ]);
+  const sorted = sortWithPriceAndFinishRate(orders);
+
+  return sorted;
 }
 
-function sortOrderMinPrice(orders: IOrder[]): IOrder[] {
-  const sortMinPrice = R.sortWith([R.ascend(R.path(["adv", "price"]))]);
-  const sorted = sortMinPrice(orders);
+function sortOrderWithPrice(orders: IOrder[]): IOrder[] {
+  const priceAscend = R.ascend(R.path(["adv", "price"]));
+  const sortWithPrice = R.sortWith([priceAscend]);
+  const sorted = sortWithPrice(orders);
+
   return sorted;
 }
 
@@ -273,8 +281,8 @@ function generateTable(orders: IOrder[]) {
     head: ["Success", "Price", "Available", "Order", "Name", "Link"],
   });
 
-  const minPriceSorted = sortOrderMinPrice(orders);
-  const minPriceColorMapped = mapColor(minPriceSorted);
+  const ascendPriceSorted = sortOrderWithPrice(orders);
+  const ascendPriceColorMapped = mapColor(ascendPriceSorted);
   for (const order of orders) {
     const monthOrderCount = order.advertiser.monthOrderCount;
     const monthFinishRate = order.advertiser.monthFinishRate * 100;
@@ -288,7 +296,7 @@ function generateTable(orders: IOrder[]) {
       monthFinishRate === 100
         ? chalk.hex(Colors.best)(monthFinishRatePercent)
         : monthFinishRatePercent,
-      chalk.hex(minPriceColorMapped[price].color)(price),
+      chalk.hex(ascendPriceColorMapped[price].color)(price),
       formatThousands(parseFloat(available), 2),
       formatThousands(monthOrderCount),
       nickName,
@@ -315,7 +323,7 @@ function setIntervalImmediately(func: Function, interval: number) {
     const requestOptions = prepareP2POption(answers);
     const p2pResponse = await requestP2P(requestOptions);
     const orders = p2pResponse.data;
-    const sorted = sortOrder(orders);
+    const sorted = sortOrderWithPriceAndFinishRate(orders);
     const table = generateTable(sorted);
 
     logUpdate(`DATE: ${chalk.bold.underline(
