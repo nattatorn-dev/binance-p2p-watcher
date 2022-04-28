@@ -86,8 +86,8 @@ interface IAskResponse {
 }
 
 async function askQuestion(): Promise<IAskResponse> {
-  const crytoList: Crypto[] = ["USDT", "BTC", "BNB", "BUSD", "ETH", "DAI"];
-  const askCrypto = askCryptoQuestion(crytoList);
+  const cryptoList: Crypto[] = ["USDT", "BTC", "BNB", "BUSD", "ETH", "DAI"];
+  const askCrypto = askCryptoQuestion(cryptoList);
 
   const fiatList: Fiat[] = [
     "ARS",
