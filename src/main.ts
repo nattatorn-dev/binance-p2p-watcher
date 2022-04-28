@@ -6,12 +6,13 @@ import * as R from "ramda";
 import * as Table from "cli-table";
 import * as logUpdate from "log-update";
 
-const DELAY_SECONDS = 3000;
+const DELAY_SECONDS = 2000;
 const P2P_ENDPOINT = "https://p2p.binance.com";
-const P2P_ROW_REQUEST = 20;
+const P2P_ROW_REQUEST = 5;
 const DEFAULT_CRYPTO = "USDT";
-const DEFAULT_FIAT = "THB";
+const DEFAULT_FIAT = "CAD";
 const DEFAULT_TRADE_TYPE = "Buy";
+const DEFAULT_PAY_TYPE = "Tinkoff";
 
 import {
   IPSPRequestOption,
@@ -20,6 +21,7 @@ import {
   TradeType,
   IP2PResponse,
   IOrder,
+  PayType
 } from "./p2p";
 const log = console.log;
 
@@ -35,7 +37,7 @@ function askCryptoQuestion(list: Crypto[]): inquirer.ListQuestionOptions {
 }
 
 function askFiatQuestion(list: Fiat[]): inquirer.ListQuestionOptions {
-  const defaultFiat = DEFAULT_FIAT || "THB";
+  const defaultFiat = DEFAULT_FIAT || "CAD";
   return {
     type: "list",
     name: "fiat",
@@ -46,13 +48,24 @@ function askFiatQuestion(list: Fiat[]): inquirer.ListQuestionOptions {
 }
 
 function askTradeTypeQuestion(list: TradeType[]): inquirer.ListQuestionOptions {
-  const defaultTradeType = DEFAULT_TRADE_TYPE || "Buy";
+  const defaultTradeType = DEFAULT_TRADE_TYPE || "SELL";
   return {
     type: "list",
     name: "tradeType",
     message: `Select exchange type (default: '${defaultTradeType}')`,
     choices: list,
     default: defaultTradeType || "Buy",
+  };
+}
+
+function askPayTypeQuestion(list: PayType[]): inquirer.ListQuestionOptions {
+  const defaultPayType = DEFAULT_PAY_TYPE || "SELL";
+  return {
+    type: "list",
+    name: "payType",
+    message: `Select payment type (default: '${defaultPayType}')`,
+    choices: list,
+    default: defaultPayType || "Tinkoff",
   };
 }
 
@@ -69,6 +82,7 @@ interface IAskResponse {
   fiat: Fiat;
   tradeType: TradeType;
   transAmount: string;
+  payType: PayType;
 }
 
 async function askQuestion(): Promise<IAskResponse> {
@@ -141,12 +155,15 @@ async function askQuestion(): Promise<IAskResponse> {
   ];
   const askFiat = askFiatQuestion(fiatList);
 
+  const payTypeList: PayType[] = ["Tinkoff", "CIBCbank"];
+  const askPayType = askPayTypeQuestion(payTypeList);
+
   const tradeTypeList: TradeType[] = ["Buy", "Sell"];
   const askTradeType = askTradeTypeQuestion(tradeTypeList);
 
   const askTransAmount = askTransAmountQuestion();
 
-  const askList = [askCrypto, askFiat, askTradeType, askTransAmount];
+  const askList = [askCrypto, askFiat, askPayType, askTradeType, askTransAmount];
 
   return inquirer.prompt<IAskResponse>(askList);
 }
@@ -164,7 +181,7 @@ async function requestBinanceP2P(
   const response = await axios.post<
     IPSPRequestOption,
     AxiosResponse<IP2PResponse>
-  >(url, requestOptions, {
+    >(url, requestOptions, {
     headers,
   });
   return response.data;
@@ -187,11 +204,12 @@ async function requestP2P(options: IPSPRequestOption): Promise<IP2PResponse> {
 function prepareP2POption(answers: IAskResponse): IPSPRequestOption {
   const options: IPSPRequestOption = {
     page: 1,
-    rows: P2P_ROW_REQUEST || 10,
+    rows: P2P_ROW_REQUEST || 5,
     asset: answers.crypto,
     tradeType: answers.tradeType,
     fiat: answers.fiat,
     transAmount: answers.transAmount,
+    payTypes: new Array(answers.payType)
   };
   return options;
 }
@@ -300,7 +318,7 @@ function generateTable(orders: IOrder[], answers: IAskResponse) {
     const monthFinishRatePercent = `${monthFinishRate.toFixed(2)}%`;
     const userType = order.advertiser.userType;
     const nickNameWithUserType =
-    userType === "merchant"
+      userType === "merchant"
         ? `${nickName} ${chalk.hex(Colors.best)(` ${userType} `)}`
         : nickName;
 

@@ -71,6 +71,7 @@ export interface IPSPRequestOption {
   tradeType: TradeType;
   fiat: Fiat;
   transAmount: string;
+  payTypes: PayType[];
 }
 
 export interface IP2PResponse {
@@ -122,6 +123,7 @@ export type PayType =
   | "FPS"
   | "NGNfiatbalance"
   | "Tinkoff"
+  | "CIBCbank"
   | "jkopay";
 
 export interface ITradeMethods {
