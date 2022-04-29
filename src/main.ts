@@ -204,11 +204,7 @@ async function requestP2P(options: IPSPRequestOption): Promise<IP2PResponse> {
 
 function prepareP2POption(answers: IAskResponse): IPSPRequestOption {
   let payType;
-  if (answers.payType == 'All Payments') {
-    payType = []
-  } else {
-    payType = new Array(answers.payType);
-  }
+  (answers.payType == 'All Payments') ? payType = [] : payType = new Array(answers.payType);
   const options: IPSPRequestOption = {
     page: 1,
     rows: P2P_ROW_REQUEST || 5,
