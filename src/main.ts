@@ -12,7 +12,7 @@ const P2P_ROW_REQUEST = 5;
 const DEFAULT_CRYPTO = "USDT";
 const DEFAULT_FIAT = "CAD";
 const DEFAULT_TRADE_TYPE = "Buy";
-const DEFAULT_PAY_TYPE = "Tinkoff";
+const DEFAULT_PAY_TYPE = "All Payments";
 
 import {
   IPSPRequestOption,
@@ -48,26 +48,26 @@ function askFiatQuestion(list: Fiat[]): inquirer.ListQuestionOptions {
 }
 
 function askTradeTypeQuestion(list: TradeType[]): inquirer.ListQuestionOptions {
-  const defaultTradeType = DEFAULT_TRADE_TYPE || "SELL";
+  const defaultTradeType = DEFAULT_TRADE_TYPE || "BUY";
   return {
     type: "list",
     name: "tradeType",
     message: `Select exchange type (default: '${defaultTradeType}')`,
     choices: list,
-    default: defaultTradeType || "Buy",
+    default: defaultTradeType || "BUY",
   };
 }
 
 function askPayTypeQuestion(list: PayType[]): inquirer.ListQuestionOptions {
-  const defaultPayType = DEFAULT_PAY_TYPE || "SELL";
-  return {
-    type: "list",
-    name: "payType",
-    message: `Select payment type (default: '${defaultPayType}')`,
-    choices: list,
-    default: defaultPayType || "Tinkoff",
-  };
-}
+  const defaultPayType = DEFAULT_PAY_TYPE || 'All Payments';
+    return {
+      type: "list",
+      name: "payType",
+      message: `Select payment type (default: '${defaultPayType}')`,
+      choices: list,
+      default: defaultPayType,
+    }
+  }
 
 function askTransAmountQuestion(): inquirer.ListQuestionOptions {
   return {
@@ -155,7 +155,7 @@ async function askQuestion(): Promise<IAskResponse> {
   ];
   const askFiat = askFiatQuestion(fiatList);
 
-  const payTypeList: PayType[] = ["Tinkoff", "CIBCbank"];
+  const payTypeList: PayType[] = ["All Payments", "Tinkoff", "CIBCbank"];
   const askPayType = askPayTypeQuestion(payTypeList);
 
   const tradeTypeList: TradeType[] = ["Buy", "Sell"];
@@ -201,7 +201,14 @@ async function requestP2P(options: IPSPRequestOption): Promise<IP2PResponse> {
   }
 }
 
+
 function prepareP2POption(answers: IAskResponse): IPSPRequestOption {
+  let payType = undefined;
+  if (answers.payType == 'All Payments') {
+    payType = new Array
+  } else {
+    payType = new Array(answers.payType);
+  }
   const options: IPSPRequestOption = {
     page: 1,
     rows: P2P_ROW_REQUEST || 5,
@@ -209,7 +216,7 @@ function prepareP2POption(answers: IAskResponse): IPSPRequestOption {
     tradeType: answers.tradeType,
     fiat: answers.fiat,
     transAmount: answers.transAmount,
-    payTypes: new Array(answers.payType)
+    payTypes: payType,
   };
   return options;
 }

@@ -113,6 +113,7 @@ export interface IAdvertising {
 }
 
 export type PayType =
+  | "All Payments"
   | "BANK"
   | "TrueMoney"
   | "ShopeePay"
