@@ -155,7 +155,7 @@ async function askQuestion(): Promise<IAskResponse> {
   ];
   const askFiat = askFiatQuestion(fiatList);
 
-  const payTypeList: PayType[] = ["All Payments", "Tinkoff", "CIBCbank"];
+  const payTypeList: PayType[] = ["All Payments", "Tinkoff", "CIBCbank", "Zelle"];
   const askPayType = askPayTypeQuestion(payTypeList);
 
   const tradeTypeList: TradeType[] = ["Buy", "Sell"];

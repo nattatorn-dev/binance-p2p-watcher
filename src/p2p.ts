@@ -125,6 +125,7 @@ export type PayType =
   | "NGNfiatbalance"
   | "Tinkoff"
   | "CIBCbank"
+  | "Zelle"
   | "jkopay";
 
 export interface ITradeMethods {
