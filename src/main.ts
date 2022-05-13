@@ -1,6 +1,6 @@
 import * as inquirer from "inquirer";
 import * as chalk from "chalk";
-import axios, { AxiosError, AxiosResponse } from "axios";
+import axios, {AxiosError, AxiosResponse} from "axios";
 import * as R from "ramda";
 // @ts-expect-error
 import * as Table from "cli-table";
@@ -23,6 +23,7 @@ import {
   IOrder,
   PayType
 } from "./p2p";
+
 const log = console.log;
 
 function askCryptoQuestion(list: Crypto[]): inquirer.ListQuestionOptions {
@@ -60,14 +61,14 @@ function askTradeTypeQuestion(list: TradeType[]): inquirer.ListQuestionOptions {
 
 function askPayTypeQuestion(list: PayType[]): inquirer.ListQuestionOptions {
   const defaultPayType = DEFAULT_PAY_TYPE || 'All Payments';
-    return {
-      type: "list",
-      name: "payType",
-      message: `Select payment type (default: '${defaultPayType}')`,
-      choices: list,
-      default: defaultPayType,
-    }
+  return {
+    type: "list",
+    name: "payType",
+    message: `Select payment type (default: '${defaultPayType}')`,
+    choices: list,
+    default: defaultPayType,
   }
+}
 
 function askTransAmountQuestion(): inquirer.ListQuestionOptions {
   return {
@@ -178,10 +179,8 @@ async function requestBinanceP2P(
     "Content-Type": "application/json",
   };
 
-  const response = await axios.post<
-    IPSPRequestOption,
-    AxiosResponse<IP2PResponse>
-    >(url, requestOptions, {
+  const response = await axios.post<IPSPRequestOption,
+    AxiosResponse<IP2PResponse>>(url, requestOptions, {
     headers,
   });
   return response.data;
@@ -223,18 +222,19 @@ export function sortOrderWithPriceAndFinishRate(orders: IOrder[]): IOrder[] {
   const finishRateDescend = R.descend(
     R.path(["advertiser", "monthFinishRate"])
   );
-    const sortWithPriceAndFinishRate = R.sortWith([
-      orders[0].adv.tradeType == 'SELL' ? priceAscend : priceDescend,
-      finishRateDescend,
-    ]);
-    const sorted = sortWithPriceAndFinishRate(orders);
+  const sortWithPriceAndFinishRate = R.sortWith([
+    orders[0].adv.tradeType == 'SELL' ? priceAscend : priceDescend,
+    finishRateDescend,
+  ]);
+  const sorted = sortWithPriceAndFinishRate(orders);
 
-    return sorted;
+  return sorted;
 }
 
 export function sortOrderWithPrice(orders: IOrder[]): IOrder[] {
   const priceAscend = R.ascend(R.path(["adv", "price"]));
-  const sortWithPrice = R.sortWith([priceAscend]);
+  const priceDescend = R.descend(R.path(["adv", "price"]));
+  const sortWithPrice = R.sortWith([orders[0].adv.tradeType == 'SELL' ? priceAscend : priceDescend]);
   const sorted = sortWithPrice(orders);
 
   return sorted;
@@ -296,7 +296,7 @@ function generateTable(orders: IOrder[], answers: IAskResponse) {
       "right-mid": "",
       middle: " ",
     },
-    style: { "padding-left": 0, "padding-right": 0 },
+    style: {"padding-left": 0, "padding-right": 0},
     colWidths: [10, 12, 18, 8, 25, 95],
     colAligns: ["left", "right", "right", "right", "left", "left"],
     head: [
