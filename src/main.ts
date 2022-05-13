@@ -11,7 +11,7 @@ const P2P_ENDPOINT = "https://p2p.binance.com";
 const P2P_ROW_REQUEST = 5;
 const DEFAULT_CRYPTO = "USDT";
 const DEFAULT_FIAT = "CAD";
-const DEFAULT_TRADE_TYPE = "Buy";
+const DEFAULT_TRADE_TYPE = "BUY";
 const DEFAULT_PAY_TYPE = "All Payments";
 
 import {
@@ -158,7 +158,7 @@ async function askQuestion(): Promise<IAskResponse> {
   const payTypeList: PayType[] = ["All Payments", "Tinkoff", "CIBCbank", "Zelle"];
   const askPayType = askPayTypeQuestion(payTypeList);
 
-  const tradeTypeList: TradeType[] = ["Buy", "Sell"];
+  const tradeTypeList: TradeType[] = ["BUY", "SELL"];
   const askTradeType = askTradeTypeQuestion(tradeTypeList);
 
   const askTransAmount = askTransAmountQuestion();
@@ -219,17 +219,17 @@ function prepareP2POption(answers: IAskResponse): IPSPRequestOption {
 
 export function sortOrderWithPriceAndFinishRate(orders: IOrder[]): IOrder[] {
   const priceAscend = R.ascend(R.path(["adv", "price"]));
+  const priceDescend = R.descend(R.path(["adv", "price"]));
   const finishRateDescend = R.descend(
     R.path(["advertiser", "monthFinishRate"])
   );
+    const sortWithPriceAndFinishRate = R.sortWith([
+      orders[0].adv.tradeType == 'SELL' ? priceAscend : priceDescend,
+      finishRateDescend,
+    ]);
+    const sorted = sortWithPriceAndFinishRate(orders);
 
-  const sortWithPriceAndFinishRate = R.sortWith([
-    priceAscend,
-    finishRateDescend,
-  ]);
-  const sorted = sortWithPriceAndFinishRate(orders);
-
-  return sorted;
+    return sorted;
 }
 
 export function sortOrderWithPrice(orders: IOrder[]): IOrder[] {

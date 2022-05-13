@@ -1,5 +1,5 @@
 export type Crypto = "USDT" | "BTC" | "BNB" | "BUSD" | "ETH" | "DAI";
-export type TradeType = "Buy" | "Sell";
+export type TradeType = "BUY" | "SELL";
 export type Fiat =
   | "ARS"
   | "EUR"
