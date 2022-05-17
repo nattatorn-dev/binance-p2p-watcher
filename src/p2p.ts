@@ -1,5 +1,5 @@
 export type Crypto = "USDT" | "BTC" | "BNB" | "BUSD" | "ETH" | "DAI";
-export type TradeType = "Buy" | "Sell";
+export type TradeType = "BUY" | "SELL";
 export type Fiat =
   | "ARS"
   | "EUR"
@@ -71,6 +71,7 @@ export interface IPSPRequestOption {
   tradeType: TradeType;
   fiat: Fiat;
   transAmount: string;
+  payTypes: PayType[];
 }
 
 export interface IP2PResponse {
@@ -112,6 +113,7 @@ export interface IAdvertising {
 }
 
 export type PayType =
+  | "All Payments"
   | "BANK"
   | "TrueMoney"
   | "ShopeePay"
@@ -122,6 +124,8 @@ export type PayType =
   | "FPS"
   | "NGNfiatbalance"
   | "Tinkoff"
+  | "CIBCbank"
+  | "Zelle"
   | "jkopay";
 
 export interface ITradeMethods {

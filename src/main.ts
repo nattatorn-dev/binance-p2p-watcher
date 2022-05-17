@@ -1,17 +1,18 @@
 import * as inquirer from "inquirer";
 import * as chalk from "chalk";
-import axios, { AxiosError, AxiosResponse } from "axios";
+import axios, {AxiosError, AxiosResponse} from "axios";
 import * as R from "ramda";
 // @ts-expect-error
 import * as Table from "cli-table";
 import * as logUpdate from "log-update";
 
-const DELAY_SECONDS = 3000;
+const DELAY_SECONDS = 2000;
 const P2P_ENDPOINT = "https://p2p.binance.com";
-const P2P_ROW_REQUEST = 20;
+const P2P_ROW_REQUEST = 5;
 const DEFAULT_CRYPTO = "USDT";
-const DEFAULT_FIAT = "THB";
-const DEFAULT_TRADE_TYPE = "Buy";
+const DEFAULT_FIAT = "CAD";
+const DEFAULT_TRADE_TYPE = "BUY";
+const DEFAULT_PAY_TYPE = "All Payments";
 
 import {
   IPSPRequestOption,
@@ -20,7 +21,9 @@ import {
   TradeType,
   IP2PResponse,
   IOrder,
+  PayType
 } from "./p2p";
+
 const log = console.log;
 
 function askCryptoQuestion(list: Crypto[]): inquirer.ListQuestionOptions {
@@ -35,7 +38,7 @@ function askCryptoQuestion(list: Crypto[]): inquirer.ListQuestionOptions {
 }
 
 function askFiatQuestion(list: Fiat[]): inquirer.ListQuestionOptions {
-  const defaultFiat = DEFAULT_FIAT || "THB";
+  const defaultFiat = DEFAULT_FIAT || "CAD";
   return {
     type: "list",
     name: "fiat",
@@ -46,14 +49,25 @@ function askFiatQuestion(list: Fiat[]): inquirer.ListQuestionOptions {
 }
 
 function askTradeTypeQuestion(list: TradeType[]): inquirer.ListQuestionOptions {
-  const defaultTradeType = DEFAULT_TRADE_TYPE || "Buy";
+  const defaultTradeType = DEFAULT_TRADE_TYPE || "BUY";
   return {
     type: "list",
     name: "tradeType",
     message: `Select exchange type (default: '${defaultTradeType}')`,
     choices: list,
-    default: defaultTradeType || "Buy",
+    default: defaultTradeType || "BUY",
   };
+}
+
+function askPayTypeQuestion(list: PayType[]): inquirer.ListQuestionOptions {
+  const defaultPayType = DEFAULT_PAY_TYPE || 'All Payments';
+  return {
+    type: "list",
+    name: "payType",
+    message: `Select payment type (default: '${defaultPayType}')`,
+    choices: list,
+    default: defaultPayType,
+  }
 }
 
 function askTransAmountQuestion(): inquirer.ListQuestionOptions {
@@ -69,11 +83,12 @@ interface IAskResponse {
   fiat: Fiat;
   tradeType: TradeType;
   transAmount: string;
+  payType: PayType;
 }
 
 async function askQuestion(): Promise<IAskResponse> {
-  const crytoList: Crypto[] = ["USDT", "BTC", "BNB", "BUSD", "ETH", "DAI"];
-  const askCrypto = askCryptoQuestion(crytoList);
+  const cryptoList: Crypto[] = ["USDT", "BTC", "BNB", "BUSD", "ETH", "DAI"];
+  const askCrypto = askCryptoQuestion(cryptoList);
 
   const fiatList: Fiat[] = [
     "ARS",
@@ -141,12 +156,15 @@ async function askQuestion(): Promise<IAskResponse> {
   ];
   const askFiat = askFiatQuestion(fiatList);
 
-  const tradeTypeList: TradeType[] = ["Buy", "Sell"];
+  const payTypeList: PayType[] = ["All Payments", "Tinkoff", "CIBCbank", "Zelle"];
+  const askPayType = askPayTypeQuestion(payTypeList);
+
+  const tradeTypeList: TradeType[] = ["BUY", "SELL"];
   const askTradeType = askTradeTypeQuestion(tradeTypeList);
 
   const askTransAmount = askTransAmountQuestion();
 
-  const askList = [askCrypto, askFiat, askTradeType, askTransAmount];
+  const askList = [askCrypto, askFiat, askPayType, askTradeType, askTransAmount];
 
   return inquirer.prompt<IAskResponse>(askList);
 }
@@ -161,10 +179,8 @@ async function requestBinanceP2P(
     "Content-Type": "application/json",
   };
 
-  const response = await axios.post<
-    IPSPRequestOption,
-    AxiosResponse<IP2PResponse>
-  >(url, requestOptions, {
+  const response = await axios.post<IPSPRequestOption,
+    AxiosResponse<IP2PResponse>>(url, requestOptions, {
     headers,
   });
   return response.data;
@@ -184,26 +200,30 @@ async function requestP2P(options: IPSPRequestOption): Promise<IP2PResponse> {
   }
 }
 
+
 function prepareP2POption(answers: IAskResponse): IPSPRequestOption {
+  let payType;
+  (answers.payType == 'All Payments') ? payType = [] : payType = new Array(answers.payType);
   const options: IPSPRequestOption = {
     page: 1,
-    rows: P2P_ROW_REQUEST || 10,
+    rows: P2P_ROW_REQUEST || 5,
     asset: answers.crypto,
     tradeType: answers.tradeType,
     fiat: answers.fiat,
     transAmount: answers.transAmount,
+    payTypes: payType,
   };
   return options;
 }
 
 export function sortOrderWithPriceAndFinishRate(orders: IOrder[]): IOrder[] {
   const priceAscend = R.ascend(R.path(["adv", "price"]));
+  const priceDescend = R.descend(R.path(["adv", "price"]));
   const finishRateDescend = R.descend(
     R.path(["advertiser", "monthFinishRate"])
   );
-
   const sortWithPriceAndFinishRate = R.sortWith([
-    priceAscend,
+    orders[0].adv.tradeType == 'SELL' ? priceAscend : priceDescend,
     finishRateDescend,
   ]);
   const sorted = sortWithPriceAndFinishRate(orders);
@@ -213,7 +233,8 @@ export function sortOrderWithPriceAndFinishRate(orders: IOrder[]): IOrder[] {
 
 export function sortOrderWithPrice(orders: IOrder[]): IOrder[] {
   const priceAscend = R.ascend(R.path(["adv", "price"]));
-  const sortWithPrice = R.sortWith([priceAscend]);
+  const priceDescend = R.descend(R.path(["adv", "price"]));
+  const sortWithPrice = R.sortWith([orders[0].adv.tradeType == 'SELL' ? priceAscend : priceDescend]);
   const sorted = sortWithPrice(orders);
 
   return sorted;
@@ -275,7 +296,7 @@ function generateTable(orders: IOrder[], answers: IAskResponse) {
       "right-mid": "",
       middle: " ",
     },
-    style: { "padding-left": 0, "padding-right": 0 },
+    style: {"padding-left": 0, "padding-right": 0},
     colWidths: [10, 12, 18, 8, 25, 95],
     colAligns: ["left", "right", "right", "right", "left", "left"],
     head: [
@@ -300,7 +321,7 @@ function generateTable(orders: IOrder[], answers: IAskResponse) {
     const monthFinishRatePercent = `${monthFinishRate.toFixed(2)}%`;
     const userType = order.advertiser.userType;
     const nickNameWithUserType =
-    userType === "merchant"
+      userType === "merchant"
         ? `${nickName} ${chalk.hex(Colors.best)(` ${userType} `)}`
         : nickName;
 
