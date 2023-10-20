@@ -21,7 +21,7 @@ import {
   IP2PResponse,
   IOrder,
 } from "./p2p";
-const log = console.log;
+const {log} = console;
 
 function askCryptoQuestion(list: Crypto[]): inquirer.ListQuestionOptions {
   const defaultCrypto = DEFAULT_CRYPTO || "USDT";
